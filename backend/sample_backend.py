@@ -48,14 +48,21 @@ def get_user(id):
       return ({})
    return users
 
-@app.route('/users', methods=['GET', 'POST'])
+@app.route('/users', methods=['GET', 'POST', 'DELETE'])
 def get_users():
    if request.method == 'GET':
       search_username = request.args.get('name')
-      if search_username :
+      search_userjob = request.args.get('job')
+      if search_username and not(search_userjob):
          subdict = {'users_list' : []}
          for user in users['users_list']:
             if user['name'] == search_username:
+               subdict['users_list'].append(user)
+         return subdict
+      elif search_username and search_userjob:
+         subdict = {'users_list' : []}
+         for user in users['users_list']:
+            if user['name'] == search_username and user['job'] == search_userjob:
                subdict['users_list'].append(user)
          return subdict
       return users
@@ -64,5 +71,14 @@ def get_users():
       users['users_list'].append(userToAdd)
       resp = jsonify(success=True)
       #resp.status_code = 200 #optionally, you can always set a response code. 
+      # 200 is the default code for a normal response
+      return resp
+   elif request.method == 'DELETE':
+      userToDelete = request.get_json()
+      for i in range(len(users['users_list'])):
+         if users['users_list'][i]['id'] == userToDelete['id']:
+            del users['users_list'][i]
+      resp = jsonify(success=True)
+      #resp.status_code = 200 #optionally, you can always set a response code.
       # 200 is the default code for a normal response
       return resp
