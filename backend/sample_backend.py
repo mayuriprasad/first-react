@@ -43,14 +43,21 @@ users = {
 def hello_world():
     return 'Hello, World!'
 
-@app.route('/users/<id>')
+@app.route('/users/<id>', methods=['GET', 'DELETE'])
 def get_user(id):
    if id :
       for user in users['users_list']:
         if user['id'] == id:
-           return user
-      return ({})
+           if request.method == 'GET':
+              return user
+           elif request.method == 'DELETE':
+              users['users_list'].remove(user)
+              resp = jsonify({}), 204
+              return resp
+      resp = jsonify({"error": "User not available"}), 404
+      return resp
    return users
+
 
 @app.route('/users', methods=['GET', 'POST', 'DELETE'])
 def get_users():
@@ -74,7 +81,7 @@ def get_users():
       userToAdd = request.get_json()
       userToAdd['id'] = generateID()
       users['users_list'].append(userToAdd)
-      resp = jsonify(success=True)
+      resp = jsonify(userToAdd)
       resp.status_code = 201 #optionally, you can always set a response code. 
       # 200 is the default code for a normal response
       return resp
